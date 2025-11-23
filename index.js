@@ -4,6 +4,8 @@
 const state = {
   events: [],
   selectedEvent: {},
+  rsvps: [],
+  guests: [],
 };
 
 const getAllEvents = async () => {
@@ -21,25 +23,42 @@ const getAllGuests = async () => {
   );
   const arrayGuests = await response.json();
   console.log(arrayGuests.data);
-  //state.events = arrayEvents.data;
-  render();
+  state.guests = arrayGuests.data;
+  return state.guests;
 };
 
 getAllGuests();
 
 const getAllRSVPs = async () => {
-  // const response = await fetch(
-  //   "https://fsa-crud-2aa9294fe819.herokuapp.com/api/2510-FTB-CT-WEB-PT/rsvps"
-  // );
-  // const arrayRSVPs = await response.json();
-  // console.log(arrayRSVPs.data);
-  //state.events = arrayEvents.data;
-  //render();
-  const allGuest = await getAllGuests();
-  allGuest.filter((guest) => {});
+  const response = await fetch(
+    "https://fsa-crud-2aa9294fe819.herokuapp.com/api/2510-FTB-CT-WEB-PT/rsvps"
+  );
+  const arrayRSVPs = await response.json();
+  console.log(arrayRSVPs.data);
+  state.rsvps = arrayRSVPs.data;
+  return state.rsvps;
+  // const allGuest = await getAllGuests();
+  // allGuest.filter((guest) => {});
 };
 
 getAllRSVPs();
+
+const guestForSelectedEvent = () => {
+  const singleEventId = state.selectedEvent.id;
+  const eventRsvp = state.rsvps.filter((rsvp) => {
+    rsvp.eventId === singleEventId;
+  });
+  const guestIds = new Set(
+    eventRsvp.map((eachRsvp) => {
+      eachRsvp.guestId;
+    })
+  );
+  const eventGuests = state.guests.filter((guest) => {
+    guestIds.has(guest.id);
+  });
+  console.log(eventGuests);
+  return eventGuests;
+};
 
 const getEventItem = async (id) => {
   const response = await fetch(
@@ -101,6 +120,8 @@ const UpcomingPartyDetails = () => {
     } else {
       date.innerText = "No date available";
     }
+    const detailsContainer = document.createElement(`container`);
+
     //Event address
     const address = document.createElement(`p`);
     address.innerText = state.selectedEvent.location;
@@ -109,13 +130,31 @@ const UpcomingPartyDetails = () => {
     const description = document.createElement(`p`);
     description.innerText = state.selectedEvent.description;
 
+    //Event guests
+    const guests = guestForSelectedEvent();
+    const guestsElement = document.createElement(`div`);
+    // if (!guests.length) {
+    //   const noGuests = document.createElement(`p`);
+    //   noGuests.innerText = "No RSVPs yet";
+    //   guestsElement.append(noGuests);
+    // } else {
+    const list = document.createElement(`ul`);
+    guests.forEach((guest) => {
+      const li = document.createElement(`li`);
+      li.innerText = guest.name;
+      list.append(li);
+    });
+    detailsContainer.append(list);
+    //}
+
     //Event container
-    const detailsContainer = document.createElement(`container`);
+
     detailsContainer.classList.add("party-detail");
     detailsContainer.append(h3);
     detailsContainer.append(date);
     detailsContainer.append(address);
     detailsContainer.append(description);
+    detailsContainer.append(guestsElement);
 
     return detailsContainer;
   }
@@ -147,6 +186,8 @@ render();
 
 const init = async () => {
   await getAllEvents();
+  await getAllGuests();
+  await getAllRSVPs();
   render();
 };
 
