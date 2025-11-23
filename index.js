@@ -1,5 +1,3 @@
-//--DOM Element
-
 //--STATE--
 const state = {
   events: [],
@@ -14,7 +12,6 @@ const getAllEvents = async () => {
   );
   const arrayEvents = await response.json();
   state.events = arrayEvents.data;
-  render();
 };
 
 const getAllGuests = async () => {
@@ -27,8 +24,6 @@ const getAllGuests = async () => {
   return state.guests;
 };
 
-getAllGuests();
-
 const getAllRSVPs = async () => {
   const response = await fetch(
     "https://fsa-crud-2aa9294fe819.herokuapp.com/api/2510-FTB-CT-WEB-PT/rsvps"
@@ -37,27 +32,32 @@ const getAllRSVPs = async () => {
   console.log(arrayRSVPs.data);
   state.rsvps = arrayRSVPs.data;
   return state.rsvps;
-  // const allGuest = await getAllGuests();
-  // allGuest.filter((guest) => {});
 };
 
-getAllRSVPs();
+getGuestsForSpecificEvent = () => {
+  eventId = state.selectedEvent.id;
 
-const guestForSelectedEvent = () => {
-  const singleEventId = state.selectedEvent.id;
-  const eventRsvp = state.rsvps.filter((rsvp) => {
-    rsvp.eventId === singleEventId;
+  //Get all rsvps for selected event id
+  const rsvpEventId = state.rsvps.filter((singleItem) => {
+    return singleItem.eventId === eventId;
   });
-  const guestIds = new Set(
-    eventRsvp.map((eachRsvp) => {
-      eachRsvp.guestId;
-    })
-  );
-  const eventGuests = state.guests.filter((guest) => {
-    guestIds.has(guest.id);
+
+  //Get all guest id for selected event id from rsvps:
+  const rsvpGuestsId = rsvpEventId.map((singleGuestId) => {
+    return singleGuestId.guestId;
   });
-  console.log(eventGuests);
-  return eventGuests;
+
+  //Get all guest names based on ther id
+  let names = [];
+  for (let i = 0; i < state.guests.length; i++) {
+    for (let j = 0; j < rsvpGuestsId.length; j++) {
+      if (state.guests[i].id === rsvpGuestsId[j]) {
+        names.push(state.guests[i].name);
+      }
+    }
+  }
+  console.log(names);
+  return names;
 };
 
 const getEventItem = async (id) => {
@@ -93,10 +93,10 @@ const UpcomingPartiesNames = (singleEvent) => {
 
 const UpcomingPartiesList = () => {
   const ul = document.createElement(`ul`);
+  ul.classList.add("parties-list");
   state.events.forEach((eachEvent) => {
     ul.append(UpcomingPartiesNames(eachEvent));
   });
-  //console.log(ul);
   return ul;
 };
 
@@ -120,7 +120,6 @@ const UpcomingPartyDetails = () => {
     } else {
       date.innerText = "No date available";
     }
-    const detailsContainer = document.createElement(`container`);
 
     //Event address
     const address = document.createElement(`p`);
@@ -130,37 +129,36 @@ const UpcomingPartyDetails = () => {
     const description = document.createElement(`p`);
     description.innerText = state.selectedEvent.description;
 
-    //Event guests
-    const guests = guestForSelectedEvent();
-    const guestsElement = document.createElement(`div`);
-    // if (!guests.length) {
-    //   const noGuests = document.createElement(`p`);
-    //   noGuests.innerText = "No RSVPs yet";
-    //   guestsElement.append(noGuests);
-    // } else {
-    const list = document.createElement(`ul`);
-    guests.forEach((guest) => {
-      const li = document.createElement(`li`);
-      li.innerText = guest.name;
-      list.append(li);
-    });
-    detailsContainer.append(list);
-    //}
-
     //Event container
+    const detailsContainer = document.createElement(`div`);
 
-    detailsContainer.classList.add("party-detail");
-    detailsContainer.append(h3);
-    detailsContainer.append(date);
-    detailsContainer.append(address);
-    detailsContainer.append(description);
-    detailsContainer.append(guestsElement);
+    //Guest names
+    const allGuestNames = getGuestsForSpecificEvent();
+    if (!allGuestNames.length) {
+      const p = document.createElement("p");
+      p.innerText = "There is no guests for given event.";
+      return p;
+    } else {
+      const ul = document.createElement(`ul`);
+      ul.classList.add("guest-names");
 
-    return detailsContainer;
+      allGuestNames.forEach((singleName) => {
+        const name = document.createElement(`li`);
+        name.innerText = singleName;
+        ul.append(name);
+      });
+
+      detailsContainer.classList.add("party-detail");
+      detailsContainer.append(h3);
+      detailsContainer.append(date);
+      detailsContainer.append(address);
+      detailsContainer.append(description);
+      detailsContainer.append(ul);
+
+      return detailsContainer;
+    }
   }
 };
-
-UpcomingPartyDetails();
 
 //=== Render ===
 function render() {

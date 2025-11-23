@@ -17,11 +17,11 @@ h2 {
   margin-bottom: 1em;
 }
 
-ul {
+ul.parties-list {
   list-style-type: none;
 }
 
-li {
+ul.parties-list li {
   border: 1px solid grey;
   border-radius: 5px;
   padding: 0.5em;
