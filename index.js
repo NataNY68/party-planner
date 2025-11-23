@@ -7,67 +7,86 @@ const state = {
 };
 
 const getAllEvents = async () => {
-  const response = await fetch(
-    "https://fsa-crud-2aa9294fe819.herokuapp.com/api/2510-FTB-CT-WEB-PT/events"
-  );
-  const arrayEvents = await response.json();
-  state.events = arrayEvents.data;
+  try {
+    const response = await fetch(
+      "https://fsa-crud-2aa9294fe819.herokuapp.com/api/2510-FTB-CT-WEB-PT/events"
+    );
+    const arrayEvents = await response.json();
+    state.events = arrayEvents.data;
+  } catch (error) {
+    console.log("Failed to fetch all events, ", error);
+  }
 };
 
 const getAllGuests = async () => {
-  const response = await fetch(
-    "https://fsa-crud-2aa9294fe819.herokuapp.com/api/2510-FTB-CT-WEB-PT/guests"
-  );
-  const arrayGuests = await response.json();
-  console.log(arrayGuests.data);
-  state.guests = arrayGuests.data;
-  return state.guests;
+  try {
+    const response = await fetch(
+      "https://fsa-crud-2aa9294fe819.herokuapp.com/api/2510-FTB-CT-WEB-PT/guests"
+    );
+    const arrayGuests = await response.json();
+    console.log(arrayGuests.data);
+    state.guests = arrayGuests.data;
+    return state.guests;
+  } catch (error) {
+    console.log("Failed to fetch all guests ", error);
+  }
 };
 
 const getAllRSVPs = async () => {
-  const response = await fetch(
-    "https://fsa-crud-2aa9294fe819.herokuapp.com/api/2510-FTB-CT-WEB-PT/rsvps"
-  );
-  const arrayRSVPs = await response.json();
-  console.log(arrayRSVPs.data);
-  state.rsvps = arrayRSVPs.data;
-  return state.rsvps;
+  try {
+    const response = await fetch(
+      "https://fsa-crud-2aa9294fe819.herokuapp.com/api/2510-FTB-CT-WEB-PT/rsvps"
+    );
+    const arrayRSVPs = await response.json();
+    console.log(arrayRSVPs.data);
+    state.rsvps = arrayRSVPs.data;
+    return state.rsvps;
+  } catch (error) {
+    console.log("Failed to fetch all RSVPs ", error);
+  }
 };
 
 getGuestsForSpecificEvent = () => {
-  eventId = state.selectedEvent.id;
+  try {
+    const eventId = state.selectedEvent.id;
+    //Get all rsvps for selected event id
+    const rsvpEventId = state.rsvps.filter((singleItem) => {
+      return singleItem.eventId === eventId;
+    });
 
-  //Get all rsvps for selected event id
-  const rsvpEventId = state.rsvps.filter((singleItem) => {
-    return singleItem.eventId === eventId;
-  });
+    //Get all guest id for selected event id from rsvps:
+    const rsvpGuestsId = rsvpEventId.map((singleGuestId) => {
+      return singleGuestId.guestId;
+    });
 
-  //Get all guest id for selected event id from rsvps:
-  const rsvpGuestsId = rsvpEventId.map((singleGuestId) => {
-    return singleGuestId.guestId;
-  });
-
-  //Get all guest names based on ther id
-  let names = [];
-  for (let i = 0; i < state.guests.length; i++) {
-    for (let j = 0; j < rsvpGuestsId.length; j++) {
-      if (state.guests[i].id === rsvpGuestsId[j]) {
-        names.push(state.guests[i].name);
+    //Get all guest names based on ther id
+    let names = [];
+    for (let i = 0; i < state.guests.length; i++) {
+      for (let j = 0; j < rsvpGuestsId.length; j++) {
+        if (state.guests[i].id === rsvpGuestsId[j]) {
+          names.push(state.guests[i].name);
+        }
       }
     }
+    console.log(names);
+    return names;
+  } catch (error) {
+    console.log("Error is function getGuestsForSpecificEvent() ", error);
   }
-  console.log(names);
-  return names;
 };
 
 const getEventItem = async (id) => {
-  const response = await fetch(
-    `https://fsa-crud-2aa9294fe819.herokuapp.com/api/2510-FTB-CT-WEB-PT/events/${id}`
-  );
-  const eventJson = await response.json();
-  state.selectedEvent = eventJson.data;
-  render();
-  return state.selectedEvent;
+  try {
+    const response = await fetch(
+      `https://fsa-crud-2aa9294fe819.herokuapp.com/api/2510-FTB-CT-WEB-PT/events/${id}`
+    );
+    const eventJson = await response.json();
+    state.selectedEvent = eventJson.data;
+    render();
+    return state.selectedEvent;
+  } catch (error) {
+    console.log("Error in function getEventItem() ", error);
+  }
 };
 
 const UpcomingPartiesNames = (singleEvent) => {
@@ -131,32 +150,32 @@ const UpcomingPartyDetails = () => {
 
     //Event container
     const detailsContainer = document.createElement(`div`);
+    detailsContainer.classList.add("party-detail");
+
+    const ul = document.createElement(`ul`);
+    ul.classList.add("guest-names");
 
     //Guest names
     const allGuestNames = getGuestsForSpecificEvent();
     if (!allGuestNames.length) {
       const p = document.createElement("p");
       p.innerText = "There is no guests for given event.";
-      return p;
+      ul.append(p);
     } else {
-      const ul = document.createElement(`ul`);
-      ul.classList.add("guest-names");
-
       allGuestNames.forEach((singleName) => {
         const name = document.createElement(`li`);
         name.innerText = singleName;
         ul.append(name);
       });
-
-      detailsContainer.classList.add("party-detail");
-      detailsContainer.append(h3);
-      detailsContainer.append(date);
-      detailsContainer.append(address);
-      detailsContainer.append(description);
-      detailsContainer.append(ul);
-
-      return detailsContainer;
     }
+
+    detailsContainer.append(h3);
+    detailsContainer.append(date);
+    detailsContainer.append(address);
+    detailsContainer.append(description);
+    detailsContainer.append(ul);
+
+    return detailsContainer;
   }
 };
 
@@ -179,8 +198,6 @@ function render() {
   $app.querySelector("UpcomingParties").replaceWith(UpcomingPartiesList());
   $app.querySelector("PartyDetails").replaceWith(UpcomingPartyDetails());
 }
-
-render();
 
 const init = async () => {
   await getAllEvents();

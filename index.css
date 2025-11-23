@@ -28,6 +28,14 @@ ul.parties-list li {
   margin: 0.75em;
 }
 
+.guest-names {
+  padding-left: 0;
+}
+
+.guest-names:has(li) {
+  padding-left: 40px;
+}
+
 a {
   text-decoration: none;
   color: black;
